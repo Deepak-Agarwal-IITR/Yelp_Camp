@@ -14,6 +14,8 @@ app.engine('ejs', ejsMate);
 const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError');
 
+//const Joi = require('joi');
+const { campgroundSchema } = require('./schemas.js');
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
     //useCreateIndex: true,
@@ -25,6 +27,19 @@ db.once("open", () => {
     console.log("Database connected")
 })
 
+const validateCampground = (req,res,next)=>{
+    
+    const { error } = campgroundSchema.validate(req.body);
+    //console.log(error.details);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',');
+        //console.log(msg)
+        throw new ExpressError(msg, 400);
+    }else{
+        next();
+    }
+}
+
 app.get('/', (req, res) => {
     res.render('home');
 })
@@ -35,10 +50,11 @@ app.get('/campgrounds', catchAsync(async (req, res, next) => {
 app.get('/campgrounds/new', (req, res) => {
     res.render('campgrounds/new');
 })
-app.post('/campgrounds', catchAsync(async (req, res, next) => {
-    if (!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
+app.post('/campgrounds', validateCampground ,catchAsync(async (req, res, next) => {
+    //if (!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
+    
     const campground = new Campground(req.body.campground);
-    console.log(campground);
+    //console.log(campground);
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`)
 }))
@@ -52,7 +68,7 @@ app.get('/campgrounds/:id/edit', catchAsync(async (req, res, next) => {
     const campground = await Campground.findById(id);
     res.render('campgrounds/edit', { campground });
 }))
-app.put('/campgrounds/:id', catchAsync(async (req, res, next) => {
+app.put('/campgrounds/:id', validateCampground ,catchAsync(async (req, res, next) => {
     const { id } = req.params;
     // console.log(req.body);
     await Campground.findByIdAndUpdate(id, { ...req.body.campground });
