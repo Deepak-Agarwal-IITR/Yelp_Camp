@@ -13,6 +13,9 @@ const reviews = require('./routes/reviews');
 const session = require('express-session')
 const flash = require('connect-flash')
 
+const passport = require('passport')
+const LocalStrategy = require('passport-local');
+const User = require('./models/user')
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
     //useCreateIndex: true,
@@ -45,6 +48,15 @@ const sessionConfig = {
 app.use(session(sessionConfig))
 app.use(flash())
 
+
+app.use(passport.initialize())
+// app.use(passport.session()) must be used after app.use(session(sessionConfig))
+app.use(passport.session())
+passport.use(new LocalStrategy(User.authenticate()))
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
+
+
 app.use((req,res,next)=>{
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error')
@@ -53,6 +65,12 @@ app.use((req,res,next)=>{
 
 app.use('/campgrounds', campgrounds);
 app.use('/campgrounds/:id/reviews', reviews)
+
+app.get('/fakeUser',async (req,res)=>{
+    const user = new User({ email: 'abcccc@gmail.com', username: 'abcccc' })
+    const newUser = await User.register(user,'chicken')
+    res.send(newUser);
+})
 
 app.get('/', (req, res) => {
     res.render('home');
