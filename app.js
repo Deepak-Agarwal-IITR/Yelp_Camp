@@ -7,8 +7,10 @@ const ejsMate = require('ejs-mate');
 
 const ExpressError = require('./utils/ExpressError');
 
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
+const campgroundRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
+const userRoutes = require('./routes/users')
+
 
 const session = require('express-session')
 const flash = require('connect-flash')
@@ -63,8 +65,10 @@ app.use((req,res,next)=>{
     next();   
 })
 
-app.use('/campgrounds', campgrounds);
-app.use('/campgrounds/:id/reviews', reviews)
+app.use('/campgrounds', campgroundRoutes);
+app.use('/campgrounds/:id/reviews', reviewRoutes)
+app.use('/',userRoutes)
+
 
 app.get('/fakeUser',async (req,res)=>{
     const user = new User({ email: 'abcccc@gmail.com', username: 'abcccc' })
