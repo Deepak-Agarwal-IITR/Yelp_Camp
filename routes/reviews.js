@@ -5,18 +5,9 @@ const Campground = require('../models/campground');
 const Review = require('../models/review');
 
 const catchAsync = require('../utils/catchAsync');
-const ExpressError = require('../utils/ExpressError');
-const { reviewSchema } = require('../schemas.js');
-
-const validateReview = (req, res, next) => {
-    const { error } = reviewSchema.validate(req.body);
-    if (error) {
-        const msg = error.details.map(el => el.message).join(',');
-        throw new ExpressError(msg, 400);
-    } else {
-        next();
-    }
-}
+//const ExpressError = require('../utils/ExpressError');
+//const { reviewSchema } = require('../schemas.js');
+const { validateReview } = require('../middleware');
 
 router.post('/', validateReview, catchAsync(async (req, res) => {
     // Now the id is in app.js so here we can not acces it without MERGEPARAMS = TRUE in router;
