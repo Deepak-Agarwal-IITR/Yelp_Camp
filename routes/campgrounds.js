@@ -4,7 +4,7 @@ const Campground = require('../models/campground');
 const catchAsync = require('../utils/catchAsync');
 //const ExpressError = require('../utils/ExpressError');
 //const { campgroundSchema } = require('../schemas.js');
-const { isLoggedIn,isAuthor,validateCampground } = require('../middleware');
+const { isLoggedIn, isAuthor, validateCampground } = require('../middleware');
 
 router.get('/', catchAsync(async (req, res, next) => {
     const campgrounds = await Campground.find({});
@@ -25,15 +25,20 @@ router.post('/', isLoggedIn, validateCampground, catchAsync(async (req, res, nex
 }))
 router.get('/:id', catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const campground = await Campground.findById(id).populate('reviews').populate('author');
-    //console.log(campground);
+    const campground = await Campground.findById(id).populate({
+        path: 'reviews',
+        populate: {
+            path: 'author'
+        }
+    }).populate('author');
+   // console.log(campground);
     if (!campground) {
         req.flash('error', 'Cannot find that campground');
         return res.redirect('/campgrounds');    // Dont know why used return without return it is working
     }
     res.render('campgrounds/show', { campground });
 }))
-router.get('/:id/edit', isLoggedIn,isAuthor, catchAsync(async (req, res, next) => {
+router.get('/:id/edit', isLoggedIn, isAuthor, catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const campground = await Campground.findById(id);
     if (!campground) {
@@ -42,10 +47,10 @@ router.get('/:id/edit', isLoggedIn,isAuthor, catchAsync(async (req, res, next) =
     }
     res.render('campgrounds/edit', { campground });
 }))
-router.put('/:id', isLoggedIn,isAuthor, validateCampground, catchAsync(async (req, res, next) => {
+router.put('/:id', isLoggedIn, isAuthor, validateCampground, catchAsync(async (req, res, next) => {
     const { id } = req.params;
     // console.log(req.body);
-    
+
     const campground = await Campground.findByIdAndUpdate(id, { ...req.body.campground });
     req.flash('success', 'Successfully updated campground');
     res.redirect(`/campgrounds/${id}`)
