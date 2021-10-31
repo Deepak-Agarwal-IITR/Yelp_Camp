@@ -1,20 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const Campground = require('../models/campground');
 const catchAsync = require('../utils/catchAsync');
-//const ExpressError = require('../utils/ExpressError');
-//const { campgroundSchema } = require('../schemas.js');
 const { isLoggedIn, isAuthor, validateCampground } = require('../middleware');
 const campgrounds = require('../controllers/campgrounds')
 
-router.get('/', catchAsync(campgrounds.index))
+router.route('/')
+    .get(catchAsync(campgrounds.index))
+    .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground))
+
 router.get('/new', isLoggedIn, campgrounds.renderNewForm)
-router.post('/', isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground))
-router.get('/:id', catchAsync(campgrounds.showCampground))
+
+router.route('/:id')
+    .get(catchAsync(campgrounds.showCampground))//here cant put semi colon
+    .put(isLoggedIn, isAuthor, validateCampground, catchAsync(campgrounds.updateCampground))
+    .delete(isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
+// If we chain like this then we cant put semi colon after get end or put end etc
+
 router.get('/:id/edit', isLoggedIn, isAuthor, catchAsync(campgrounds.renderEditForm))
-
-router.put('/:id', isLoggedIn, isAuthor, validateCampground, catchAsync(campgrounds.updateCampground))
-
-router.delete('/:id', isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
 
 module.exports = router;
