@@ -8,12 +8,13 @@ module.exports.renderNewForm = (req, res) => {
     res.render('campgrounds/new');
 }
 module.exports.createCampground = async (req, res, next) => {
-    //if (!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
-    const campground = new Campground(req.body.campground);
-    campground.author = req.user._id;
-    //console.log(campground);
-    await campground.save();
 
+    const campground = new Campground(req.body.campground);
+    campground.images = req.files.map(f=>({url:f.path,filename:f.filename}))
+    campground.author = req.user._id;
+    
+    await campground.save();
+    console.log(campground);
     req.flash('success', 'Successully made a new campground')
     res.redirect(`/campgrounds/${campground._id}`)
 }
@@ -28,7 +29,7 @@ module.exports.showCampground = async (req, res, next) => {
    // console.log(campground);
     if (!campground) {
         req.flash('error', 'Cannot find that campground');
-        return res.redirect('/campgrounds');    // Dont know why used return without return it is working
+        return res.redirect('/campgrounds');   
     }
     res.render('campgrounds/show', { campground });
 }
