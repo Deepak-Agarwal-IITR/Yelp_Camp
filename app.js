@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== "production") {
+    require('dotenv').config();
+}
+
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -71,12 +75,6 @@ app.use('/campgrounds', campgroundRoutes);
 app.use('/campgrounds/:id/reviews', reviewRoutes)
 app.use('/',userRoutes)
 
-
-app.get('/fakeUser',async (req,res)=>{
-    const user = new User({ email: 'abcccc@gmail.com', username: 'abcccc' })
-    const newUser = await User.register(user,'chicken')
-    res.send(newUser);
-})
 
 app.get('/', (req, res) => {
     res.render('home');
